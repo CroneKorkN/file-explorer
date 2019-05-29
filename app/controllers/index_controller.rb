@@ -1,5 +1,6 @@
 class IndexController < ApplicationController
   BASE_DIRECTORY = ENV['BASE_DIRECTORY'] || '.'
+  URL_SCOPE = ENV['URL_SCOPE'] || ''
 
   include ActionView::Helpers::NumberHelper
 
@@ -9,22 +10,22 @@ class IndexController < ApplicationController
   end
   
   def new
-    @absolute_path = check_path(params[:path])
+    @absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
   end
 
   def create
     uploaded_io = params[:file]
-    @absolute_path = check_path(params[:path])
+    @absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
     File.open(Rails.root.join(@absolute_path, uploaded_io.original_filename), 'wb') do |file|
       file.write(uploaded_io.read)
     end
   end
 
   def path
-    absolute_path = check_path(params[:path])
+    absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
 
     if File.directory?(absolute_path)
-      populate_directory(absolute_path, "#{params[:path]}/")
+      populate_directory(absolute_path, "#{params[:path].gsub(/^#{URL_SCOPE}/, '')}/")
       render :index
     elsif File.file?(absolute_path)
       if File.size(absolute_path) > 250_000
@@ -37,7 +38,7 @@ class IndexController < ApplicationController
   end
 
   def delete
-    absolute_path = check_path(params[:path])
+    absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
 
     if File.directory?(absolute_path)
       FileUtils.rm_rf(absolute_path)
