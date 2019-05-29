@@ -45,7 +45,7 @@ class IndexController < ApplicationController
     else
       FileUtils.rm(absolute_path)
     end
-    redirect_to scoped(@absolute_path)
+    redirect_to scoped(@absolute_path.split("/")[0..-2].join("/"))
   end
 
   private
