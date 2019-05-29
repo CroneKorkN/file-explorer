@@ -1,6 +1,5 @@
 class IndexController < ApplicationController
   BASE_DIRECTORY = ENV['BASE_DIRECTORY'] || '.'
-  URL_SCOPE = ENV['URL_SCOPE'] || ''
 
   include ActionView::Helpers::NumberHelper
 
@@ -10,23 +9,23 @@ class IndexController < ApplicationController
   end
   
   def new
-    @absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
+    @absolute_path = check_path(unscoped(params[:path]))
   end
 
   def create
     uploaded_io = params[:file]
-    @absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
+    @absolute_path = check_path(unscoped(params[:path]))
     File.open(Rails.root.join(@absolute_path, uploaded_io.original_filename), 'wb') do |file|
       file.write(uploaded_io.read)
     end
-    redirect_to "/#{URL_SCOPE}#{@absolute_path}"
+    redirect_to scoped(@absolute_path)
   end
 
   def path
-    absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
+    absolute_path = check_path(unscoped(params[:path]))
 
     if File.directory?(absolute_path)
-      populate_directory(absolute_path, "#{params[:path].gsub(/^#{URL_SCOPE}/, '')}/")
+      populate_directory(absolute_path, "#{unscoped(params[:path])}/")
       render :index
     elsif File.file?(absolute_path)
       if File.size(absolute_path) > 250_000
@@ -39,7 +38,7 @@ class IndexController < ApplicationController
   end
 
   def delete
-    absolute_path = check_path(params[:path].gsub(/^#{URL_SCOPE}/, ''))
+    absolute_path = check_path(unscoped(params[:path]))
 
     if File.directory?(absolute_path)
       FileUtils.rm_rf(absolute_path)
@@ -50,6 +49,14 @@ class IndexController < ApplicationController
   end
 
   private
+  
+  def scoped path
+    ENV['URL_SCOPE'] ? "/#{URL_SCOPE}#{path}" : path
+  end
+  
+  def unscoped path
+    ENV['URL_SCOPE'] ? path.gsub(/^#{URL_SCOPE}/, '') : path
+  end
 
   def my_escape(string)
     string.gsub(/([^ a-zA-Z0-9_.-]+)/) do
@@ -78,8 +85,6 @@ class IndexController < ApplicationController
   def check_path(path)
     current_directory = File.expand_path(BASE_DIRECTORY)
     @absolute_path = File.expand_path(path, BASE_DIRECTORY)
-    logger.error @path
-    logger.error @absolute_path
     raise ActionController::RoutingError, 'Not Found' unless File.exists?(@absolute_path)
 
     unless @absolute_path.starts_with?(current_directory)
