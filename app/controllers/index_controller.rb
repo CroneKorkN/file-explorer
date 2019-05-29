@@ -7,6 +7,18 @@ class IndexController < ApplicationController
     populate_directory(BASE_DIRECTORY, '')
     @absolute_path = BASE_DIRECTORY
   end
+  
+  def new
+    @absolute_path = check_path(params[:path])
+  end
+
+  def create
+    uploaded_io = params[:file]
+    @absolute_path = check_path(params[:path])
+    File.open(Rails.root.join(@absolute_path, uploaded_io.original_filename), 'wb') do |file|
+      file.write(uploaded_io.read)
+    end
+  end
 
   def path
     absolute_path = check_path(params[:path])
