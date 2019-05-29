@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  namespace ENV['URL_SCOPE'].to_sym do
+  scope "/#{ENV['URL_SCOPE']}" do
     get '/upload', to: 'index#new'
     post '/', to: 'index#create'
     get '/', to: 'index#index'
