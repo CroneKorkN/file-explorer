@@ -19,6 +19,7 @@ class IndexController < ApplicationController
     File.open(Rails.root.join(@absolute_path, uploaded_io.original_filename), 'wb') do |file|
       file.write(uploaded_io.read)
     end
+    redirect_to "/#{URL_SCOPE}#{@absolute_path}"
   end
 
   def path
@@ -45,7 +46,7 @@ class IndexController < ApplicationController
     else
       FileUtils.rm(absolute_path)
     end
-    head 204
+    redirect_to "/#{URL_SCOPE}#{@absolute_path}"
   end
 
   private
@@ -77,6 +78,8 @@ class IndexController < ApplicationController
   def check_path(path)
     current_directory = File.expand_path(BASE_DIRECTORY)
     @absolute_path = File.expand_path(path, BASE_DIRECTORY)
+    logger.error @path
+    logger.error @absolute_path
     raise ActionController::RoutingError, 'Not Found' unless File.exists?(@absolute_path)
 
     unless @absolute_path.starts_with?(current_directory)
