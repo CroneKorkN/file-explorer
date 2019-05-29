@@ -45,17 +45,17 @@ class IndexController < ApplicationController
     else
       FileUtils.rm(absolute_path)
     end
-    redirect_to "/#{URL_SCOPE}#{@absolute_path}"
+    redirect_to scoped(@absolute_path)
   end
 
   private
   
   def scoped path
-    ENV['URL_SCOPE'] ? "/#{URL_SCOPE}#{path}" : path
+    ENV['URL_SCOPE'] ? "/#{ENV['URL_SCOPE']}#{path}" : path
   end
   
   def unscoped path
-    ENV['URL_SCOPE'] ? path.gsub(/^#{URL_SCOPE}/, '') : path
+    ENV['URL_SCOPE'] ? path.gsub(/^#{ENV['URL_SCOPE']}/, '') : path
   end
 
   def my_escape(string)
