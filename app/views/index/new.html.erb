@@ -1,7 +1,0 @@
-<h1>upload to <%= @absolute_path %></h1>
-
-<%= form_tag "/#{ENV['URL_SCOPE']}", multipart: true do %>
-  <%= hidden_field_tag :path, @absolute_path %>
-  <%= file_field_tag :file %>
-  <%= submit_tag "upload" %>
-<% end %>

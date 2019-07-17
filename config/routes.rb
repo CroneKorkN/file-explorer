@@ -1,16 +1,10 @@
 Rails.application.routes.draw do
   routes = ->{
-    get '/upload', to: 'index#new'
+    get '/_upload', to: 'index#new', as: :upload
     post '/', to: 'index#create'
     get '/', to: 'index#index'
     get '/:path', to: 'index#path', constraints: { path: /.+/ }
     delete '/:path', to: 'index#delete', constraints: { path: /.+/ }
   }
-  if ENV['URL_SCOPE']
-    scope "/#{ENV['URL_SCOPE']}" do
-      routes.call
-    end
-  else
-    routes.call
-  end
+  ENV['URL_SCOPE'] ? scope("/#{ENV['URL_SCOPE']}"){routes.call} : routes.call
 end
