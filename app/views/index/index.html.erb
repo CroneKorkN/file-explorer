@@ -1,4 +1,9 @@
-<h1><%= @absolute_path %></h1>
+<h1>
+  <% (elements = @absolute_path.split("/")).count.times do |i| %>
+    <%= "/" if i > 0 %>
+    <%= link_to elements[i], "/#{ENV['URL_SCOPE']}#{elements[0..i].join("/")}" %>
+  <% end %>
+</h1>
 
 <table>
   <thead>
@@ -13,7 +18,7 @@
     <% @directory.each do |entry| %>
     <tr>
       <td>
-        <%= link_to "#{entry[:entry]}", "/#{entry[:relative]}", class: entry[:type].to_s %>
+        <%= link_to "#{entry[:entry]}", "/#{ENV['URL_SCOPE']}#{entry[:relative]}", class: entry[:type].to_s %>
       </td>
       <td>
         <%= entry[:size] %>
@@ -23,10 +28,12 @@
       </td>
       <td>
         <% if entry[:entry] != './' && entry[:entry] != '../' %>
-          <%= link_to 'Delete', "/#{entry[:relative]}", method: :delete, class: 'delete', data: { confirm: "Are you sure you want to delete `#{entry[:absolute]}`?" } %>
+          <%= link_to 'Delete', "/#{ENV['URL_SCOPE']}#{entry[:relative]}", method: :delete, class: 'delete', data: { confirm: "Are you sure you want to delete `#{entry[:absolute]}`?" } %>
         <% end %>
       </td>
     </tr>
     <% end %>
   </tbody>
 </table>
+
+<%= link_to "upload", upload_path(path: @absolute_path) %>

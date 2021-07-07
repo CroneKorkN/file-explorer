@@ -7,12 +7,25 @@ class IndexController < ApplicationController
     populate_directory(BASE_DIRECTORY, '')
     @absolute_path = BASE_DIRECTORY
   end
+  
+  def new
+    @absolute_path = check_path(unscoped(params[:path]))
+  end
+
+  def create
+    uploaded_io = params[:file]
+    @absolute_path = check_path(unscoped(params[:path]))
+    File.open(Rails.root.join(@absolute_path, uploaded_io.original_filename), 'wb') do |file|
+      file.write(uploaded_io.read)
+    end
+    redirect_to scoped(@absolute_path)
+  end
 
   def path
-    absolute_path = check_path(params[:path])
+    absolute_path = check_path(unscoped(params[:path]))
 
     if File.directory?(absolute_path)
-      populate_directory(absolute_path, "#{params[:path]}/")
+      populate_directory(absolute_path, "#{unscoped(params[:path])}/")
       render :index
     elsif File.file?(absolute_path)
       if File.size(absolute_path) > 250_000
@@ -25,17 +38,25 @@ class IndexController < ApplicationController
   end
 
   def delete
-    absolute_path = check_path(params[:path])
+    absolute_path = check_path(unscoped(params[:path]))
 
     if File.directory?(absolute_path)
       FileUtils.rm_rf(absolute_path)
     else
       FileUtils.rm(absolute_path)
     end
-    head 204
+    redirect_to scoped(@absolute_path.split("/")[0..-2].join("/"))
   end
 
   private
+  
+  def scoped path
+    ENV['URL_SCOPE'] ? "/#{ENV['URL_SCOPE']}#{path}" : path
+  end
+  
+  def unscoped path
+    ENV['URL_SCOPE'] ? path.gsub(/^#{ENV['URL_SCOPE']}/, '') : path
+  end
 
   def my_escape(string)
     string.gsub(/([^ a-zA-Z0-9_.-]+)/) do
